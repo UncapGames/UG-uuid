@@ -4,110 +4,154 @@ class_name UUID
 
 const BYTE_MASK: int = 0b11111111
 
+const INT_MASK: int = 0b11111111111111111111111111111111
+
+
 static func uuidbin():
-  # 16 random bytes with the bytes on index 6 and 8 modified
-  return [
-    randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
-    randi() & BYTE_MASK, randi() & BYTE_MASK, ((randi() & BYTE_MASK) & 0x0f) | 0x40, randi() & BYTE_MASK,
-    ((randi() & BYTE_MASK) & 0x3f) | 0x80, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
-    randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
-  ]
+	# 16 random bytes with the bytes on index 6 and 8 modified
+	return [
+		randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
+		randi() & BYTE_MASK, randi() & BYTE_MASK, ((randi() & BYTE_MASK) & 0x0f) | 0x40, randi() & BYTE_MASK,
+		((randi() & BYTE_MASK) & 0x3f) | 0x80, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
+		randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK, randi() & BYTE_MASK,
+	]
+
 
 static func uuidbinrng(rng: RandomNumberGenerator):
-  return [
-    rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
-    rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, ((rng.randi() & BYTE_MASK) & 0x0f) | 0x40, rng.randi() & BYTE_MASK,
-    ((rng.randi() & BYTE_MASK) & 0x3f) | 0x80, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
-    rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
-  ]
+	return [
+		rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
+		rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, ((rng.randi() & BYTE_MASK) & 0x0f) | 0x40, rng.randi() & BYTE_MASK,
+		((rng.randi() & BYTE_MASK) & 0x3f) | 0x80, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
+		rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK, rng.randi() & BYTE_MASK,
+	]
+
+
+static func uuidbinsingle():
+	return randi() & INT_MASK
+
+
+static func v1() -> StringName:
+	return &"%08x" % uuidbinsingle()
+
 
 static func v4():
-  # 16 random bytes with the bytes on index 6 and 8 modified
-  var b = uuidbin()
+	# 16 random bytes with the bytes on index 6 and 8 modified
+	var b = uuidbin()
+	
+	return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
+		# low
+		b[0], b[1], b[2], b[3],
+		
+		# mid
+		b[4], b[5],
+		
+		# hi
+		b[6], b[7],
+		
+		# clock
+		b[8], b[9],
+		
+		# clock
+		b[10], b[11], b[12], b[13], b[14], b[15]
+	]
 
-  return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
-    # low
-    b[0], b[1], b[2], b[3],
 
-    # mid
-    b[4], b[5],
-
-    # hi
-    b[6], b[7],
-
-    # clock
-    b[8], b[9],
-
-    # clock
-    b[10], b[11], b[12], b[13], b[14], b[15]
-  ]
-  
 static func v4_rng(rng: RandomNumberGenerator):
-  # 16 random bytes with the bytes on index 6 and 8 modified
-  var b = uuidbinrng(rng)
+	# 16 random bytes with the bytes on index 6 and 8 modified
+	var b = uuidbinrng(rng)
+	
+	return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
+		# low
+		b[0], b[1], b[2], b[3],
+		
+		# mid
+		b[4], b[5],
+		
+		# hi
+		b[6], b[7],
+		
+		# clock
+		b[8], b[9],
+		
+		# clock
+		b[10], b[11], b[12], b[13], b[14], b[15]
+	]
 
-  return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
-    # low
-    b[0], b[1], b[2], b[3],
 
-    # mid
-    b[4], b[5],
+## Generates a UUIDv7 (RFC 9562) with Unix timestamp in milliseconds.
+static func v7() -> String:
+	var unix_ms: int = int(Time.get_unix_time_from_system() * 1000) & 0xFFFFFFFFFFFF
+	
+	var r0: int = randi()
+	var r1: int = randi()
+	var r2: int = randi()
+	
+	var b := [
+		(unix_ms >> 40) & 0xFF, (unix_ms >> 32) & 0xFF, (unix_ms >> 24) & 0xFF,
+		(unix_ms >> 16) & 0xFF, (unix_ms >> 8) & 0xFF, unix_ms & 0xFF,
+		0x70 | ((r0 >> 22) & 0x0F), (r0 >> 14) & 0xFF,
+		0x80 | ((r0 >> 8) & 0x3F), r0 & BYTE_MASK,
+		(r1 >> 24) & BYTE_MASK, (r1 >> 16) & BYTE_MASK, (r1 >> 8) & BYTE_MASK, r1 & BYTE_MASK,
+		(r2 >> 24) & BYTE_MASK, (r2 >> 16) & BYTE_MASK
+	]
+	
+	return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
+		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9],
+		b[10], b[11], b[12], b[13], b[14], b[15]
+	]
 
-    # hi
-    b[6], b[7],
 
-    # clock
-    b[8], b[9],
-
-    # clock
-    b[10], b[11], b[12], b[13], b[14], b[15]
-  ]
-  
 var _uuid: Array
 
+
 func _init(rng := RandomNumberGenerator.new()):
-  _uuid = uuidbinrng(rng)
+	_uuid = uuidbinrng(rng)
+
 
 func as_array():
-  return _uuid.duplicate()
+	return _uuid.duplicate()
+
 
 func as_dict(big_endian := true):
-  if big_endian:
-    return {
-      "low"  : (_uuid[0]  << 24) + (_uuid[1]  << 16) + (_uuid[2]  << 8 ) +  _uuid[3],
-      "mid"  : (_uuid[4]  << 8 ) +  _uuid[5],
-      "hi"   : (_uuid[6]  << 8 ) +  _uuid[7],
-      "clock": (_uuid[8]  << 8 ) +  _uuid[9],
-      "node" : (_uuid[10] << 40) + (_uuid[11] << 32) + (_uuid[12] << 24) + (_uuid[13] << 16) + (_uuid[14] << 8 ) +  _uuid[15]
-    }
-  else:
-    return {
-      "low"  : _uuid[0]          + (_uuid[1]  << 8 ) + (_uuid[2]  << 16) + (_uuid[3]  << 24),
-      "mid"  : _uuid[4]          + (_uuid[5]  << 8 ),
-      "hi"   : _uuid[6]          + (_uuid[7]  << 8 ),
-      "clock": _uuid[8]          + (_uuid[9]  << 8 ),
-      "node" : _uuid[10]         + (_uuid[11] << 8 ) + (_uuid[12] << 16) + (_uuid[13] << 24) + (_uuid[14] << 32) + (_uuid[15] << 40)
-    }
-    
+	if big_endian:
+		return {
+			"low"  : (_uuid[0]  << 24) + (_uuid[1]  << 16) + (_uuid[2]  << 8 ) +  _uuid[3],
+			"mid"  : (_uuid[4]  << 8 ) +  _uuid[5],
+			"hi"   : (_uuid[6]  << 8 ) +  _uuid[7],
+			"clock": (_uuid[8]  << 8 ) +  _uuid[9],
+			"node" : (_uuid[10] << 40) + (_uuid[11] << 32) + (_uuid[12] << 24) + (_uuid[13] << 16) + (_uuid[14] << 8 ) +  _uuid[15]
+		}
+		
+	else:
+		return {
+			"low"  : _uuid[0]  + (_uuid[1]  << 8 ) + (_uuid[2]  << 16) + (_uuid[3]  << 24),
+			"mid"  : _uuid[4]  + (_uuid[5]  << 8 ),
+			"hi"   : _uuid[6]  + (_uuid[7]  << 8 ),
+			"clock": _uuid[8]  + (_uuid[9]  << 8 ),
+			"node" : _uuid[10] + (_uuid[11] << 8 ) + (_uuid[12] << 16) + (_uuid[13] << 24) + (_uuid[14] << 32) + (_uuid[15] << 40)
+		}
+
+
 func as_string():
-  return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
-    # low
-    _uuid[0], _uuid[1], _uuid[2], _uuid[3],
+	return '%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x' % [
+		# low
+		_uuid[0], _uuid[1], _uuid[2], _uuid[3],
+		
+		# mid
+		_uuid[4], _uuid[5],
+		
+		# hi
+		_uuid[6], _uuid[7],
+		
+		# clock
+		_uuid[8], _uuid[9],
+		
+		# node
+		_uuid[10], _uuid[11], _uuid[12], _uuid[13], _uuid[14], _uuid[15]
+	]
 
-    # mid
-    _uuid[4], _uuid[5],
 
-    # hi
-    _uuid[6], _uuid[7],
-
-    # clock
-    _uuid[8], _uuid[9],
-
-    # node
-    _uuid[10], _uuid[11], _uuid[12], _uuid[13], _uuid[14], _uuid[15]
-  ]
-  
 func is_equal(other):
-  # Godot Engine compares Array recursively
-  # There's no need for custom comparison here.
-  return _uuid == other._uuid
+	# Godot Engine compares Array recursively
+	# There's no need for custom comparison here.
+	return _uuid == other._uuid
